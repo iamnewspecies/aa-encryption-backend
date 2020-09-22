@@ -125,19 +125,10 @@ public class AccountService {
 		return Base64.getEncoder().encodeToString(encryptedText);
 	}
 
-	public SecretKey decryptSecretKey(String key, PrivateKey fipPrivateKey) throws Exception {
+	public byte[] decryptKey(String key, PrivateKey fipPrivateKey) throws Exception {
 		Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 		cipher.init(Cipher.DECRYPT_MODE, fipPrivateKey);
-		byte[] decryptedText = cipher.doFinal(Base64.getDecoder().decode(key.getBytes()));
-
-		return new SecretKeySpec(decryptedText, 12, decryptedText.length - 12, "AES");
+		return cipher.doFinal(Base64.getDecoder().decode(key.getBytes()));
 	}
-	
-	public byte[] decryptIV(String key, PrivateKey fipPrivateKey) throws Exception {
-		Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-		cipher.init(Cipher.DECRYPT_MODE, fipPrivateKey);
-		byte[] decryptedText = cipher.doFinal(Base64.getDecoder().decode(key.getBytes()));
 
-		return Arrays.copyOfRange(decryptedText, 0, 12);
-	}
 }

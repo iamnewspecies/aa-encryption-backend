@@ -2,11 +2,13 @@ package com.aa.encryption.controller;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.catalina.connector.Response;
 import org.jose4j.json.internal.json_simple.JSONObject;
@@ -95,8 +97,10 @@ public class AccountsController {
 			
 			PrivateKey fipPrivateKey= accountService.getFipPrivateKey(fipId);
 			
-			SecretKey key = accountService.decryptSecretKey(encryptedKey, fipPrivateKey);
-			byte[] iv = accountService.decryptIV(encryptedKey, fipPrivateKey);
+			byte[] decryptedKey = accountService.decryptKey(encryptedKey, fipPrivateKey);
+			
+			byte[] iv = Arrays.copyOfRange(decryptedKey, 0, 12);
+			SecretKey key = new SecretKeySpec(decryptedKey, 12, decryptedKey.length - 12, "AES");
 			String data = accountService.decryptUsingAES(encryptedPayload, iv, key);
 			
 			accountResponse.setSuccess(data);
