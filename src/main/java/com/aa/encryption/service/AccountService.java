@@ -9,6 +9,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 
 import javax.crypto.Cipher;
@@ -104,11 +105,11 @@ public class AccountService {
 	}
 
 
-	public String decryptUsingAES(String data, String iv, SecretKey key) throws Exception {
+	public String decryptUsingAES(String data, byte[] iv, SecretKey key) throws Exception {
 		Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-		byte[] byteIV = Base64.getDecoder().decode(iv);
+//		byte[] byteIV = Base64.getDecoder().decode(iv);
 		SecretKeySpec keySpec = new SecretKeySpec(key.getEncoded(), "AES");
-		GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, byteIV);
+		GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv);
 		cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmParameterSpec);
 		byte[] decryptedText = cipher.doFinal(Base64.getDecoder().decode(data.getBytes()));
 
@@ -124,12 +125,19 @@ public class AccountService {
 		return Base64.getEncoder().encodeToString(encryptedText);
 	}
 
-	public SecretKey decryptSecretKey(String key, String fipId) throws Exception {
-		PrivateKey fipPrivateKey = this.getFipPrivateKey(fipId);
+	public SecretKey decryptSecretKey(String key, PrivateKey fipPrivateKey) throws Exception {
 		Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 		cipher.init(Cipher.DECRYPT_MODE, fipPrivateKey);
 		byte[] decryptedText = cipher.doFinal(Base64.getDecoder().decode(key.getBytes()));
 
-		return new SecretKeySpec(decryptedText, 0, decryptedText.length, "AES");
+		return new SecretKeySpec(decryptedText, 12, decryptedText.length - 12, "AES");
+	}
+	
+	public byte[] decryptIV(String key, PrivateKey fipPrivateKey) throws Exception {
+		Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		cipher.init(Cipher.DECRYPT_MODE, fipPrivateKey);
+		byte[] decryptedText = cipher.doFinal(Base64.getDecoder().decode(key.getBytes()));
+
+		return Arrays.copyOfRange(decryptedText, 0, 12);
 	}
 }
