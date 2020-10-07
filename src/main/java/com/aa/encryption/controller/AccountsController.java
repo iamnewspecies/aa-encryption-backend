@@ -88,7 +88,7 @@ public class AccountsController {
 	
 	// this API is hosted by FIP
 	@PostMapping("/api/v1/accounts/link")
-	public ResponseEntity<AccountResponse> linkAccounts(@RequestBody AccountLinkRequest request) {
+	public ResponseEntity<AccountLinkResponse> linkAccounts(@RequestBody AccountLinkRequest request) {
 		final String fipId = "BANK123";
 		AccountLinkResponse accountLinkResponse = new AccountLinkResponse();
 		HttpStatus status = HttpStatus.OK;
@@ -113,7 +113,7 @@ public class AccountsController {
 			
 			String data = accountService.decryptUsingAES(encryptedPayloadWithMAC, Base64.getDecoder().decode(iv), key);
 			
-			accountLinkResponse.setSuccess(data);
+			accountLinkResponse.setSuccess("DONE");
 
 			System.out.println(data);
 
@@ -123,7 +123,7 @@ public class AccountsController {
 			accountLinkResponse.setError(e.getMessage());
 			status = HttpStatus.BAD_REQUEST;
 		}
-		return new ResponseEntity<AccountResponse>(accountLinkResponse, status);
+		return new ResponseEntity<AccountLinkResponse>(accountLinkResponse, status);
 	}
 
 }
