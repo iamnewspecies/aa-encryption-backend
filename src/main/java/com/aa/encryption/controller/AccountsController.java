@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
 import com.aa.encryption.model.AccountLinkRequest;
+import com.aa.encryption.model.AccountLinkResponse;
 import com.aa.encryption.model.AccountRequest;
 import com.aa.encryption.model.AccountResponse;
 import com.aa.encryption.service.AccountService;
@@ -89,7 +90,7 @@ public class AccountsController {
 	@PostMapping("/api/v1/accounts/link")
 	public ResponseEntity<AccountResponse> linkAccounts(@RequestBody AccountLinkRequest request) {
 		final String fipId = "BANK123";
-		AccountResponse accountResponse = new AccountResponse();
+		AccountLinkResponse accountLinkResponse = new AccountLinkResponse();
 		HttpStatus status = HttpStatus.OK;
 		try {
 			
@@ -112,17 +113,17 @@ public class AccountsController {
 			
 			String data = accountService.decryptUsingAES(encryptedPayloadWithMAC, Base64.getDecoder().decode(iv), key);
 			
-			accountResponse.setSuccess(data);
+			accountLinkResponse.setSuccess(data);
 
 			System.out.println(data);
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			accountResponse.setSuccess("FAILED");
-			accountResponse.setError(e.getMessage());
+			accountLinkResponse.setSuccess("FAILED");
+			accountLinkResponse.setError(e.getMessage());
 			status = HttpStatus.BAD_REQUEST;
 		}
-		return new ResponseEntity<AccountResponse>(accountResponse, status);
+		return new ResponseEntity<AccountResponse>(accountLinkResponse, status);
 	}
 
 }
