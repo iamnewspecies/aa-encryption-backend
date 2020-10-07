@@ -105,13 +105,12 @@ public class AccountService {
 	}
 
 
-	public String decryptUsingAES(String data, byte[] iv, SecretKey key) throws Exception {
+	public String decryptUsingAES(byte[] data, byte[] iv, SecretKey key) throws Exception {
 		Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-//		byte[] byteIV = Base64.getDecoder().decode(iv);
 		SecretKeySpec keySpec = new SecretKeySpec(key.getEncoded(), "AES");
 		GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv);
 		cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmParameterSpec);
-		byte[] decryptedText = cipher.doFinal(Base64.getDecoder().decode(data.getBytes()));
+		byte[] decryptedText = cipher.doFinal(data);
 
 		return new String(decryptedText);
 	}

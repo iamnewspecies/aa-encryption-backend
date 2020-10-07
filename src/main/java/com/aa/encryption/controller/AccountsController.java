@@ -3,6 +3,7 @@ package com.aa.encryption.controller;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -93,15 +94,23 @@ public class AccountsController {
 		try {
 			
 			String encryptedPayload = request.getEncryptedPayload();
+			String tag = request.getTag();
+			String iv = request.getIv();
 			String encryptedKey = request.getEncryptedKey();
 			
 			PrivateKey fipPrivateKey= accountService.getFipPrivateKey(fipId);
 			
 			byte[] decryptedKey = accountService.decryptKey(encryptedKey, fipPrivateKey);
+			SecretKey key = new SecretKeySpec(decryptedKey, "AES");
 			
-			byte[] iv = Arrays.copyOfRange(decryptedKey, 0, 12);
-			SecretKey key = new SecretKeySpec(decryptedKey, 12, decryptedKey.length - 12, "AES");
-			String data = accountService.decryptUsingAES(encryptedPayload, iv, key);
+			byte[] decodedPayload = Base64.getDecoder().decode(encryptedPayload);
+			byte[] decodedTag = Base64.getDecoder().decode(tag);
+			byte[] encryptedPayloadWithMAC = new byte[decodedPayload.length+decodedTag.length];
+			
+			System.arraycopy(decodedPayload, 0, encryptedPayloadWithMAC, 0, decodedPayload.length);  
+			System.arraycopy(decodedTag, 0, encryptedPayloadWithMAC, decodedPayload.length, decodedTag.length);
+			
+			String data = accountService.decryptUsingAES(encryptedPayloadWithMAC, Base64.getDecoder().decode(iv), key);
 			
 			accountResponse.setSuccess(data);
 
@@ -115,13 +124,5 @@ public class AccountsController {
 		}
 		return new ResponseEntity<AccountResponse>(accountResponse, status);
 	}
-
-//	public static HashSet<String> getUsedNonce() {
-//		return usedNonce;
-//	}
-//
-//	public static void setUsedNonce(HashSet<String> usedNonce) {
-//		AccountsController.usedNonce = usedNonce;
-//	}
 
 }
